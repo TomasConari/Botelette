@@ -48,6 +48,9 @@ class MyClient(discord.Client):
         if message.content.startswith(f'{prefix}hola'):
             await message.channel.send(f'**¡Hola, {message.author.mention}!**')
 
+        if message.content.startswith(f'{prefix}adios'):
+            await message.channel.send(f'**¡Adios, {message.author.mention}!, Cuidate**')
+
         if message.content.startswith(f'{prefix}repite'):
             mensaje_a_repetir = message.content[len(f'{prefix}repite '):]
             await message.channel.send(mensaje_a_repetir)
