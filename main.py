@@ -21,8 +21,10 @@ welcome_channel_id = 1260388313995673752
 verify_channel_id = 1259680755844382770
 rules_channel_id = 1259678601867956226
 info_channel_id = 1259680892167786547
+announcement_channel_id = 1260113108798541875
 goodbye_channel_id = 1260388511316578415
 queries_channel_id = 1260110168763535441
+user_role_id = 1259677158075535531
 
 #Roles_id
 verified_role_id = 1259677158075535531
@@ -46,10 +48,7 @@ class MyClient(discord.Client):
             return
 
         if message.content.startswith(f'{prefix}hola'):
-            await message.channel.send(f'**¡Hola, {message.author.mention}!**')
-
-        if message.content.startswith(f'{prefix}adios'):
-            await message.channel.send(f'**¡Adios, {message.author.mention}!, Cuidate**')
+            await message.channel.send(f'**¡Hola, {message.author.mention}!👋👋👋**')
 
         if message.content.startswith(f'{prefix}repite'):
             mensaje_a_repetir = message.content[len(f'{prefix}repite '):]
@@ -58,6 +57,19 @@ class MyClient(discord.Client):
         if message.content.startswith(f'{prefix}invitacion'):
             await message.channel.send(invitacion)
 
+        if message.content.startswith(f'{prefix}redes'):
+            embed = Embed(
+                title="¡Redes de Amelie!",
+                description=f"**¡Sigue a Amelie en todas sus redes!:**",
+                color=discord.Color.pink()
+            )
+            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/795756404618559488/1261128667203899453/e697649f-5855-4737-9659-6e420aec86cd-profile_image-300x300.png?ex=6691d518&is=66908398&hm=5586d57172afaf3c8e6a11b4f256da6d9426aa4fe49186c72159ad77184a4738&")
+            embed.add_field(name="⭕Instagram⭕", value="https://www.instagram.com/ameeli.e/", inline=False)
+            embed.add_field(name="🟣Twitch🟣", value="https://www.twitch.tv/amelieeetv", inline=False)
+            embed.add_field(name="⚫Tiktok⚫", value="https://www.tiktok.com/@ameeli.ee", inline=False)
+            embed.add_field(name="🔴Youtube🔴", value="https://www.youtube.com/@Ameli.e", inline=False)
+            await message.channel.send(embed=embed)
+
         if message.content.startswith(f'{prefix}ayuda'):
             embed = Embed(
                 title="¡Información de Botelette!",
@@ -65,16 +77,18 @@ class MyClient(discord.Client):
                 color=discord.Color.pink()
             )
             embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1260114371749609563/1260411551261790268/Diseno_sin_titulo.png?ex=668f393b&is=668de7bb&hm=8e0ea6d6ad05f7355042c012213d562851a067b40b64fda0a2281bff4994a846&")
-            embed.add_field(name="Saludar", value=f"Saludame usando el comando: {prefix}hola", inline=False)
+            embed.add_field(name="Saludar", value=f"Saludame usando el comando {prefix}hola", inline=False)
             embed.add_field(name="Repetir lo que digas", value=f"Usa el comando {prefix}repite (Lo que quieras que repita).", inline=False)
             embed.add_field(name="Generar Enlace de Invitación", value=f"Usa el comando {prefix}invitacion.", inline=False)
             embed.add_field(name="Mensajes de Bienvenida y Despedida", value="Me encargo de dar la bienvenida a los miembros que ingresan y de despedir a los miembros que se van.", inline=False)
+            embed.add_field(name="Mostrar las redes de Amelie", value=f"Usa el comando {prefix}redes para conocer las redes sociales que usa Amelie.", inline=False)
             autor_roles_ids = [role.id for role in message.author.roles]
             if any(role_id in allowed_roles for role_id in autor_roles_ids):
                 embed.add_field(name="⚠️Atención⚠️", value="Los siguientes comandos estan reservados para personal de Staff del servidor.", inline=False)
                 embed.add_field(name="Canales de Reglas e Info", value=f"En caso de que no tengas los mensajes de reglas o info ejecuta los siguientes comandos respectivamente: {prefix}rules o {prefix}info.", inline=False)
                 embed.add_field(name="Verificación de Miembros Nuevos", value=f"En caso de que no tengas el mensaje de verificación ejecuta el siguiente comando: {prefix}verify.", inline=False)
                 embed.add_field(name="Limpieza de Mensajes", value=f"Eliminar una cantidad de mensajes: {prefix}limpiar (Cantidad de mensajes a borrar).", inline=False)
+                embed.add_field(name="Hacer un Anuncio", value=f"Pinguea a todo el servidor en el canal de anuncios seguido del mensaje que me des: {prefix}anuncia (Mensaje a anunciar).", inline=False)
             else:
                 embed.add_field(name="Canales de Reglas e Info", value=f"Me encargo de los canales de reglas e info para que el servidor sea un ambiente seguro y divertido para todos.", inline=False)
                 embed.add_field(name="Verificación de Miembros Nuevos", value=f"Me encargo del canal de Verificación para filtrar bots y spam en el servidor.", inline=False)
@@ -98,12 +112,12 @@ class MyClient(discord.Client):
                 verify_embed = Embed(
                     title="¡Verificate!",
                     description=f"Lee las reglas en {rules_channel.mention} y reacciona con el emoji a continuación para tener acceso a todos los canales:\n\n"
-                                "🌟 - Verificar \n",
+                                "✅ - Verificar \n",
                     color=discord.Color.blue()
                 )
-                verify_embed.add_field(name="Info", value=f"Para información del servidor pasate por el canal de Info: {info_channel.mention}.", inline=False)
+                verify_embed.add_field(name="Info", value=f"Para información sobre el servidor pasate por el canal de Info: {info_channel.mention}.", inline=False)
                 msg = await verify_channel.send(embed=verify_embed)
-                await msg.add_reaction('🌟')
+                await msg.add_reaction('✅')
                 
                 rules_embed = Embed(
                     title="¡Reglas!",
@@ -122,6 +136,8 @@ class MyClient(discord.Client):
                                 f"**Disfruta del servidor.  No olvides verificarte: {verify_channel.mention}, y pasarte por el canal de info: {info_channel.mention}**",
                     color=discord.Color.gold()
                 )
+                rules_embed.set_image(url="https://cdn.discordapp.com/attachments/795756404618559488/1260744829831348224/gif.gif?ex=66906f9e&is=668f1e1e&hm=1c912e3fe500c1ae5b47b29cd4218aa35f87e0b8b0cc30c0552b037b1186a950&")
+
                 msg = await rules_channel.send(embed=rules_embed)
                 
                 info_embed = Embed(
@@ -174,6 +190,8 @@ class MyClient(discord.Client):
                             f"**Disfruta del servidor.  No olvides verificarte: {verify_channel.mention}, y pasarte por el canal de info: {info_channel.mention}**",
                 color=discord.Color.gold()
             )
+            rules_embed.set_image(url="https://cdn.discordapp.com/attachments/795756404618559488/1260744829831348224/gif.gif?ex=66906f9e&is=668f1e1e&hm=1c912e3fe500c1ae5b47b29cd4218aa35f87e0b8b0cc30c0552b037b1186a950&")
+
             msg = await rules_channel.send(embed=rules_embed)
             await message.channel.send(f'**Reenviadas las reglas del servidor en el canal {rules_channel.mention}!**')
 
@@ -206,7 +224,7 @@ class MyClient(discord.Client):
                                 "✅ - Verificar \n",
                     color=discord.Color.blue()
             )
-            verify_embed.add_field(name="Info", value=f"Para información del servidor pasate por el canal de Info: {info_channel.mention}.", inline=False)
+            verify_embed.add_field(name="\nInfo", value=f"Para información del servidor pasate por el canal de Info: {info_channel.mention}.", inline=False)
             msg = await verify_channel.send(embed=verify_embed)
             await msg.add_reaction('✅')
             await message.channel.send(f'**Reenviado el verificador del servidor en el canal {verify_channel.mention}!**')
@@ -222,7 +240,16 @@ class MyClient(discord.Client):
                 deleted = await message.channel.purge(limit=num_messages + 2)
                 await message.channel.send(f"Se han eliminado {len(deleted) - 1} mensajes.", delete_after=5)
             except (IndexError, ValueError):
-                await message.channel.send("Por favor, proporciona un número válido de mensajes a eliminar.")
+                await message.channel.send(message.content.split(' ')[1])
+        
+        if message.content.startswith(f'{prefix}anuncia'):
+            anuncio = message.content[len(f'{prefix}anuncia '):].strip()
+            if anuncio:
+                user_role = message.guild.get_role(user_role_id)
+                announcement_channel = self.get_channel(announcement_channel_id)
+                await announcement_channel.send(f"¡Atencion {user_role.mention}!\n {anuncio}")
+            else:
+                await message.channel.send("Por favor proporciona un mensaje para anunciar.")
 
     async def on_raw_reaction_add(self, payload):
         if payload.user_id == self.user.id:
@@ -255,14 +282,15 @@ class MyClient(discord.Client):
         
         if welcome_channel and rules_channel and verify_channel:
             embed = Embed(
-                title=f'Bienvenido al servidor, {member.name}!',
+                title=f'¡Bienvenido al servidor, {member.name}!',
                 description=f'Bienvenido a nuestro servidor, {member.mention}! Esperamos que te diviertas.',
-                color=discord.Color.magenta()
+                color=discord.Color.blue()
             )
             embed.set_thumbnail(url=member.avatar.url)
             embed.add_field(name="Reglas", value=f"Por favor, revisa el canal de reglas: {rules_channel.mention}.", inline=True)
             embed.add_field(name="Verificación", value=f"Para ver todos los canales, verificate en {verify_channel.mention}.", inline=True)
-            embed.set_image(url='https://c.tenor.com/TVFrC38WTRQAAAAC/tenor.gif')
+            embed.set_image(url='https://cdn.discordapp.com/attachments/795756404618559488/1260738840348594238/960_1.gif?ex=66906a0a&is=668f188a&hm=152ff227435289e3fccbe175fa9d47692d09cdd163d78568e89ceb74649d685e&')
+            embed.set_footer(text=f"Ahora somos {len(member.guild.members)} miembros en el servidor.")
             await welcome_channel.send(embed=embed)
         else:
             print('No se encontraron todos los canales necesarios.')
@@ -272,12 +300,14 @@ class MyClient(discord.Client):
         
         if goodbye_channel:
             embed = Embed(
-                title=f'{member.display_name} ha dejado el servidor',
-                description=f'Estamos tristes por su partida',
+                title='Alguien ha dejado el Servidor',
+                description=f'**{member.display_name} ha Abandonado {member.guild.name}**',
                 color=discord.Color.red()
             )
             embed.set_thumbnail(url=member.avatar.url)
-            embed.set_image(url='https://media.tenor.com/9TF-CSHKqOgAAAAC/cat-coffee.gif')
+            embed.set_image(url='https://media1.tenor.com/m/MzGKS8oljv0AAAAC/anime-driving.gif')
+            embed.add_field(name="", value=f"Estamos tristes por su partida.", inline=True)
+            embed.set_footer(text=f"Ahora somos {len(member.guild.members)} miembros en el servidor.")
             await goodbye_channel.send(embed=embed)
         else:
             print('No se encontró el canal de despedida.')
