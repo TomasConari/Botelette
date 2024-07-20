@@ -5,7 +5,8 @@ id_canales = {
     "info_channel_id": 1259680892167786547,
     "announcement_channel_id": 1260113108798541875,
     "goodbye_channel_id": 1260388511316578415,
-    "queries_channel_id": 1260110168763535441
+    "queries_channel_id": 1260110168763535441,
+    "event_channel_id": 1259925482418339891
 }
 
 id_roles = {

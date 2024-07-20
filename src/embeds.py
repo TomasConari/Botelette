@@ -4,7 +4,7 @@ import discord
 def crear_embed_redes():
     embed_redes = Embed(
         title="¡Redes de Amelie!",
-        description=f"**¡Sigue a Amelie en todas sus redes!:**",
+        description=f"**Sigue a Amelie en todas sus redes:**",
         color=discord.Color.pink()
     )
     embed_redes.set_thumbnail(url="https://cdn.discordapp.com/attachments/795756404618559488/1261128667203899453/e697649f-5855-4737-9659-6e420aec86cd-profile_image-300x300.png?ex=6691d518&is=66908398&hm=5586d57172afaf3c8e6a11b4f256da6d9426aa4fe49186c72159ad77184a4738&")
@@ -23,7 +23,6 @@ def crear_embed_ayuda(func_message, func_prefix, func_allowed_roles):
     )
     embed_ayuda.set_thumbnail(url="https://cdn.discordapp.com/attachments/1260114371749609563/1260411551261790268/Diseno_sin_titulo.png?ex=668f393b&is=668de7bb&hm=8e0ea6d6ad05f7355042c012213d562851a067b40b64fda0a2281bff4994a846&")
     embed_ayuda.add_field(name="Saludar", value=f"Saludame usando el comando {func_prefix}hola", inline=False)
-    embed_ayuda.add_field(name="Repetir lo que digas", value=f"Usa el comando {func_prefix}repite (Lo que quieras que repita).", inline=False)
     embed_ayuda.add_field(name="Generar Enlace de Invitación", value=f"Usa el comando {func_prefix}invitacion.", inline=False)
     embed_ayuda.add_field(name="Mensajes de Bienvenida y Despedida", value="Me encargo de dar la bienvenida a los miembros que ingresan y de despedir a los miembros que se van.", inline=False)
     embed_ayuda.add_field(name="Mostrar las redes de Amelie", value=f"Usa el comando {func_prefix}redes para conocer las redes sociales que usa Amelie.", inline=False)
