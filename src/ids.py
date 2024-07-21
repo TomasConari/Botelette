@@ -6,7 +6,12 @@ id_canales = {
     "announcement_channel_id": 1260113108798541875,
     "goodbye_channel_id": 1260388511316578415,
     "queries_channel_id": 1260110168763535441,
-    "event_channel_id": 1259925482418339891
+    "event_channel_id": 1259925482418339891,
+    "mod_channel_id": 1260032769288044564,
+    "ticket_category_id" : 1264379521663111208,
+    "ticket_channel_id": 1264380939589652522,
+    "user_commands_channel_id": 1260110230247702560,
+    "mod_commands_channel_id": 1260032769288044564
 }
 
 id_roles = {

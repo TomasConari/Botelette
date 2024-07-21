@@ -24,7 +24,6 @@ def crear_embed_ayuda(func_message, func_prefix, func_allowed_roles):
     embed_ayuda.set_thumbnail(url="https://cdn.discordapp.com/attachments/1260114371749609563/1260411551261790268/Diseno_sin_titulo.png?ex=668f393b&is=668de7bb&hm=8e0ea6d6ad05f7355042c012213d562851a067b40b64fda0a2281bff4994a846&")
     embed_ayuda.add_field(name="Saludar", value=f"Saludame usando el comando {func_prefix}hola", inline=False)
     embed_ayuda.add_field(name="Generar Enlace de Invitación", value=f"Usa el comando {func_prefix}invitacion.", inline=False)
-    embed_ayuda.add_field(name="Mensajes de Bienvenida y Despedida", value="Me encargo de dar la bienvenida a los miembros que ingresan y de despedir a los miembros que se van.", inline=False)
     embed_ayuda.add_field(name="Mostrar las redes de Amelie", value=f"Usa el comando {func_prefix}redes para conocer las redes sociales que usa Amelie.", inline=False)
     autor_roles_ids = [role.id for role in func_message.author.roles]
     if any(role_id in func_allowed_roles for role_id in autor_roles_ids):
@@ -32,10 +31,8 @@ def crear_embed_ayuda(func_message, func_prefix, func_allowed_roles):
         embed_ayuda.add_field(name="Canales de Reglas e Info", value=f"En caso de que no tengas los mensajes de reglas o info ejecuta los siguientes comandos respectivamente: {func_prefix}rules o {func_prefix}info.", inline=False)
         embed_ayuda.add_field(name="Verificación de Miembros Nuevos", value=f"En caso de que no tengas el mensaje de verificación ejecuta el siguiente comando: {func_prefix}verify.", inline=False)
         embed_ayuda.add_field(name="Limpieza de Mensajes", value=f"Eliminar una cantidad de mensajes: {func_prefix}limpiar (Cantidad de mensajes a borrar).", inline=False)
-        embed_ayuda.add_field(name="Hacer un Anuncio", value=f"Pinguea a todo el servidor en el canal de anuncios seguido del mensaje que me des: {func_prefix}anuncia (Mensaje a anunciar).", inline=False)
-    else:
-        embed_ayuda.add_field(name="Canales de Reglas e Info", value=f"Me encargo de los canales de reglas e info para que el servidor sea un ambiente seguro y divertido para todos.", inline=False)
-        embed_ayuda.add_field(name="Verificación de Miembros Nuevos", value=f"Me encargo del canal de Verificación para filtrar bots y spam en el servidor.", inline=False)
+        embed_ayuda.add_field(name="Hacer un Anuncio", value=f"Pinguea a todo el servidor en el canal de Anuncios seguido del mensaje que me des: {func_prefix}anuncia (Mensaje a anunciar).", inline=False)
+        embed_ayuda.add_field(name="Anunciar Eventos", value=f"Pinguea a todo el servidor en el canal de Eventos seguido del mensaje que me des: {func_prefix}evento (Mensaje a anunciar).", inline=False)
     embed_ayuda.set_image(url='https://c.tenor.com/TVFrC38WTRQAAAAC/tenor.gif')
     return embed_ayuda
 
@@ -49,7 +46,7 @@ def crear_embed_verify(func_rules_channel, func_info_channel):
     verify_embed.add_field(name="Info", value=f"Para información sobre el servidor pasate por el canal de Info: {func_info_channel.mention}.", inline=False)
     return verify_embed
 
-def crear_embed_rules(func_mod_role, func_queries_channel, func_verify_channel, func_info_channel):
+def crear_embed_rules(func_mod_role, func_queries_channel, func_verify_channel, func_info_channel, func_tickets_channel):
     rules_embed = Embed(
         title="¡Reglas!",
         description=
@@ -60,6 +57,8 @@ def crear_embed_rules(func_mod_role, func_queries_channel, func_verify_channel, 
             "**-No pinguear o arrobar a Amelie.**\n\n"
             f"**-Arrobar al personal de staff: {func_mod_role.mention} para pedir ayuda.**\n\n"
             f"**-Si se tiene una duda o queja, escribirlo en el canal {func_queries_channel.mention}.**\n\n"
+            f"**-Para reportes, problemas o ayuda especializada crear un ticket en el canal: {func_tickets_channel.mention}.**\n\n"
+            "**-Crea los tickets necesarios, el spam de tickets resultara en Ban.**\n\n"
             "**-Trata a todo el mundo con respeto. No se tolerará ningún tipo de acoso, caza de brujas, sexismo, racismo o discurso de odio.**\n\n"
             "**-No se permite el spam ni la autopromoción (invitaciones al servidor, anuncios, etc.) sin permiso de un miembro del personal. Esto también incluye mandar MD a otros miembros.**\n\n"
             "**-No se permite contenido con restricción por edad ni obsceno. Esto incluye texto, imágenes o enlaces que presenten desnudos, violencia u otro tipo de contenido gráfico que pueda herir la sensibilidad del espectador.**\n\n"
@@ -85,3 +84,11 @@ def crear_info_embed(func_verify_channel, func_rules_channel):
         color=discord.Color.green()
     )
     return info_embed
+
+def crear_ticket_embed():
+    ticket_embed = Embed(
+        title="Ticket",
+        description= "Presiona el botón para crear un Ticket de Soporte",
+        color=discord.Color.blue()
+    )
+    return ticket_embed

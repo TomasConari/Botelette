@@ -2,9 +2,10 @@ import os
 from dotenv import load_dotenv
 import discord
 from discord import Embed
-from src.embeds import crear_embed_redes, crear_embed_ayuda, crear_embed_verify, crear_embed_rules, crear_info_embed
-from src.ids import id_canales, id_roles, guild_id
+from discord.ui import Button, View
 from datetime import datetime
+from src.embeds import crear_embed_redes, crear_embed_ayuda, crear_embed_verify, crear_embed_rules, crear_info_embed, crear_ticket_embed
+from src.ids import id_canales, id_roles, guild_id
 
 load_dotenv(dotenv_path='key.env')
 
@@ -12,18 +13,51 @@ key = os.getenv('DISCORD_TOKEN')
 
 prefix = "%"
 
-#Intents
+# Intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 intents.guilds = True
 intents.reactions = True
 
-#Enlaces
-invitacion = "https://discord.gg/gn4JFNSjs3"
+# Enlaces
+link_invitacion = "https://discord.gg/gn4JFNSjs3"
 
 # Roles específicos permitidos para interactuar con el bot
 allowed_roles = [id_roles["mod_role_id"], id_roles["admin_role_id"]]
+
+class TicketView(View):
+    def __init__(self, bot, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bot = bot
+
+    @discord.ui.button(label="Crear Ticket", style=discord.ButtonStyle.primary, custom_id="create_ticket")
+    async def create_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild = self.bot.get_guild(guild_id)
+        member = interaction.user
+
+        timestamp = datetime.now().strftime("%d\u2044%m\u2044%Y-%H\u2236%M")
+
+        # Crear un nuevo canal para el ticket
+        category = discord.utils.get(guild.categories, id=id_canales["ticket_category_id"])
+        if not category:
+            await print("La categoría de tickets no está configurada correctamente.", ephemeral=True)
+            return
+
+        ticket_channel = await guild.create_text_channel(
+            f'{member.name}-{timestamp}',
+            category=category
+        )
+
+        # Configurar los permisos del canal
+        await ticket_channel.set_permissions(member, read_messages=True, send_messages=True)
+        await ticket_channel.set_permissions(guild.default_role, read_messages=False)
+
+        # Enviar un mensaje de bienvenida en el canal del ticket
+        await ticket_channel.send(f'Hola {member.mention}, Escribe un breve resumen de tu problema. Un miembro del Staff se pondrá en contacto contigo pronto.')
+
+        # Actualiza el mensaje para que use la nueva vista
+        await interaction.response.send_message(f'Tu ticket ha sido creado: {ticket_channel.mention}', ephemeral=True)
 
 class MyClient(discord.Client):
     
@@ -35,12 +69,15 @@ class MyClient(discord.Client):
     queries_channel = None
     welcome_channel = None
     goodbye_channel = None
+    ticket_channel = None
+    mod_channel = None
     guild = None
     verified_role = None
     unverified_role = None
     mod_role = None
     admin_role = None
-    
+    event_message_id = None
+
     async def on_ready(self):
         self.verify_channel = self.get_channel(id_canales["verify_channel_id"])
         self.rules_channel = self.get_channel(id_canales["rules_channel_id"])
@@ -50,14 +87,17 @@ class MyClient(discord.Client):
         self.welcome_channel = self.get_channel(id_canales["welcome_channel_id"])
         self.goodbye_channel = self.get_channel(id_canales["goodbye_channel_id"])
         self.event_channel = self.get_channel(id_canales["event_channel_id"])
+        self.ticket_channel = self.get_channel(id_canales["ticket_channel_id"])
+        self.mod_channel = self.get_channel(id_canales["mod_channel_id"])
         self.guild = self.get_guild(guild_id)
         self.verified_role = self.guild.get_role(id_roles["verified_role_id"])
         self.unverified_role = self.guild.get_role(id_roles["unverified_role_id"])
         self.mod_role = self.guild.get_role(id_roles["mod_role_id"])
         self.admin_role = self.guild.get_role(id_roles["admin_role_id"])
         print(f'Logged on as {self.user}!')
-    
+
     async def on_message(self, message):
+    
         if message.author == self.user:
             return
 
@@ -65,18 +105,34 @@ class MyClient(discord.Client):
             await message.channel.send(f'**¡Hola, {message.author.mention}!👋👋👋**')
 
         if message.content.startswith(f'{prefix}invitacion'):
-            await message.channel.send(invitacion)
+            await message.channel.send(f"**Invitación al servidor de Amelie:** \n {link_invitacion}")
 
         if message.content.startswith(f'{prefix}redes'):
             embed_redes = crear_embed_redes()
             await message.channel.send(embed=embed_redes)
 
-        if message.content.startswith(f'{prefix}ayuda'):
-            embed_ayuda = crear_embed_ayuda(message, prefix, allowed_roles)
-            await message.channel.send(embed=embed_ayuda)
-
+        if message.channel.id == id_canales["user_commands_channel_id"]:
+            if message.content.startswith(f'{prefix}ayuda'):
+                embed_ayuda = crear_embed_ayuda(message, prefix, allowed_roles)
+                await message.channel.send(embed=embed_ayuda)
+        
         author_roles = [role.id for role in message.author.roles]
         if not any(role_id in author_roles for role_id in allowed_roles):
+            return
+        
+        if message.content.startswith(f'{prefix}limpiar'):
+            try:
+                await message.channel.send("Limpiando")
+                num_messages = int(message.content.split(' ')[1])
+                if num_messages <= 0:
+                    await message.channel.send("El número de mensajes a eliminar debe ser mayor que 0.", ephemeral=True)
+                    return
+                deleted = await message.channel.purge(limit=num_messages + 2)
+                await message.channel.send(f"Se han eliminado {len(deleted) - 1} mensajes.", delete_after=5)
+            except (IndexError, ValueError):
+                await message.channel.send("Error: Por favor proporciona un número válido de mensajes para eliminar.")
+
+        if message.channel.id != id_canales["mod_commands_channel_id"]:
             return
 
         if message.content.startswith(f'{prefix}setup'):
@@ -85,90 +141,85 @@ class MyClient(discord.Client):
                 msg = await self.verify_channel.send(embed=verify_embed)
                 await msg.add_reaction('✅')
                 
-                rules_embed = crear_embed_rules(self.mod_role, self.queries_channel, self.verify_channel, self.info_channel)
+                rules_embed = crear_embed_rules(self.mod_role, self.queries_channel, self.verify_channel, self.info_channel, self.ticket_channel)
                 msg = await self.rules_channel.send(embed=rules_embed)
                 
                 info_embed = crear_info_embed(self.verify_channel, self.rules_channel)
                 msg = await self.info_channel.send(embed=info_embed)
+
+                view = TicketView(self)
+                ticket_embed = crear_ticket_embed()
+                await self.ticket_channel.send(embed=ticket_embed, view=view)
                 
                 await message.channel.send(
                     f"**¡Hola, {message.author.mention}! Canales Configurados por este Bot: **\n\n"
                     f"**Bienvenidas: {self.welcome_channel.mention}**\n"
                     f"**Reglas: {self.rules_channel.mention}**\n"
                     f"**Info: {self.info_channel.mention}**\n"
+                    f"**Creación de Tickets: {self.ticket_channel.mention}**\n"
                     f"**Verificación: {self.verify_channel.mention}**\n"
                     f"**Despedidas: {self.goodbye_channel.mention}**\n"
                 )
             except Exception as e:
-                await message.channel.send(f'**Ha ocurrido un error desconocido: {e}**')
+                await print(f'**Ha ocurrido un error desconocido: {e}**')
 
         if message.content.startswith(f'{prefix}rules'):
-            rules_embed = crear_embed_rules(self.mod_role, self.queries_channel, self.verify_channel, self.info_channel)
+            rules_embed = crear_embed_rules(self.mod_role, self.queries_channel, self.verify_channel, self.info_channel, self.ticket_channel)
             msg = await self.rules_channel.send(embed=rules_embed)
-            await message.channel.send(f'**Reenviadas las reglas del servidor en el canal {self.rules_channel.mention}!**')
+            await message.channel.send(f'**Reenviadas las reglas del servidor en el canal {self.rules_channel.mention}!**', ephemeral=True)
 
         if message.content.startswith(f'{prefix}info'):
             info_embed = crear_info_embed(self.verify_channel, self.rules_channel)
             msg = await self.info_channel.send(embed=info_embed)
-            await message.channel.send(f'**Reenviada la información del servidor en el canal {self.info_channel.mention}!**')
+            await message.channel.send(f'**Reenviada la información del servidor en el canal {self.info_channel.mention}!**', ephemeral=True)
 
         if message.content.startswith(f'{prefix}verify'):
             verify_embed = crear_embed_verify(self.rules_channel, self.info_channel)
             msg = await self.verify_channel.send(embed=verify_embed)
             await msg.add_reaction('✅')
-            await message.channel.send(f'**Reenviado el verificador del servidor en el canal {self.verify_channel.mention}!**')
-        
-        if message.content.startswith(f'{prefix}evento'):
-            try:
-                event_details = message.content[len(f'{prefix}evento '):].strip().split('|')
-                if len(event_details) < 2:
-                    await message.channel.send("Por favor proporciona el nombre y descripción del evento en el formato: `%evento nombre | descripción`")
-                    return
-                
-                event_name, event_description = event_details
-                event_date = discord.utils.utcnow()
-
-                # Crear el evento
-                event = await self.guild.create_scheduled_event(
-                    name=event_name.strip(),
-                    description=event_description.strip(),
-                    start_time=event_date,
-                    channel=self.event_channel,
-                    privacy_level=discord.PrivacyLevel.guild_only,
-                )
-
-                embed_evento = Embed(
-                    title=event_name.strip(),
-                    description=event_description.strip(),
-                    color=discord.Color.green()
-                )
-                embed_evento.add_field(name="Fecha", value=event_date.strftime('%Y-%m-%d %H:%M:%S'))
-
-                await self.announcement_channel.send(embed=embed_evento)
-                await message.channel.send(f'**Evento "{event_name.strip()}" anunciado en el canal {self.announcement_channel.mention}!**')
-
-            except Exception as e:
-                await message.channel.send(f'**Ha ocurrido un error al crear el evento: {e}**')
-        
-        if message.content.startswith(f'{prefix}limpiar'):
-            try:
-                await message.channel.send("Limpiando")
-                num_messages = int(message.content.split(' ')[1])
-                if num_messages <= 0:
-                    await message.channel.send("El número de mensajes a eliminar debe ser mayor que 0.")
-                    return
-                deleted = await message.channel.purge(limit=num_messages + 2)
-                await message.channel.send(f"Se han eliminado {len(deleted) - 1} mensajes.", delete_after=5)
-            except (IndexError, ValueError):
-                await message.channel.send(message.content.split(' ')[1])
+            await message.channel.send(f'**Reenviado el verificador del servidor en el canal {self.verify_channel.mention}!**', ephemeral=True)
+            
+        if message.content.startswith(f'{prefix}tickets'):
+            view = TicketView(self)
+            ticket_embed = crear_ticket_embed()
+            await self.ticket_channel.send(embed=ticket_embed, view=view)
+            await message.channel.send(f'**Reenviado el creador de tickets en el canal {self.ticket_channel.mention}!**', ephemeral=True)
         
         if message.content.startswith(f'{prefix}anuncia'):
             anuncio = message.content[len(f'{prefix}anuncia '):].strip()
             if anuncio:
                 await self.announcement_channel.send(f"¡Atencion {self.verified_role.mention}!\n {anuncio}")
             else:
-                await message.channel.send("Por favor proporciona un mensaje para anunciar.")
-            
+                await message.channel.send("Por favor proporciona un mensaje para anunciar.", ephemeral=True)
+
+        if message.content.startswith(f'{prefix}evento'):
+            anuncio = message.content[len(f'{prefix}evento '):].strip()
+            if anuncio:
+                await self.event_channel.send(f"{self.verified_role.mention} ¡Evento!:\n {anuncio}")
+            else:
+                await message.channel.send("Por favor proporciona un mensaje para anunciar.", ephemeral=True)
+
+    async def on_scheduled_event_create(self, event):
+        event_name = event.name
+        event_description = event.description
+        event_start_time = event.start_time
+
+        timestamp = int(event_start_time.timestamp())
+
+        await self.mod_channel.send(f"Se ha creado un nuevo evento: {event_name}")
+        msg = await self.event_channel.send(
+            "¡Atención @here!\n"
+            f"Nuevo Evento: {event_name}. \n"
+            f"{event_description}.\n"
+            f"Se llevará a cabo en <t:{timestamp}:R> (<t:{timestamp}:f>)"
+        )
+        self.event_message_id = msg.id
+
+    async def on_guild_channel_create(self, channel):
+        if isinstance(channel, discord.TextChannel) and channel.category:
+            if channel.category.id == id_canales["ticket_category_id"]:
+                msg = await self.mod_channel.send(f'{self.mod_role.mention}, Se ha creado un nuevo Ticket: {channel.mention}')
+    
     async def on_raw_reaction_add(self, payload):
         if payload.user_id == self.user.id:
             return
